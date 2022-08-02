@@ -22,6 +22,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'bookings',
+    'flights',
+    'users',
+    'core',
 ]
 
 MIDDLEWARE = [
