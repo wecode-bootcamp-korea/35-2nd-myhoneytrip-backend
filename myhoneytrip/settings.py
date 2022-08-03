@@ -1,6 +1,6 @@
 from pathlib     import Path
 
-from my_settings import DATABASES, SECRET_KEY
+from my_settings import ALGORITHM, DATABASES, SECRET_KEY, KAKAO_REDIRECT_URI, KAKAO_REST_API_KEY, KAKAO_CLIENT_SECRET
 
 import pymysql
 
@@ -9,6 +9,8 @@ pymysql.install_as_MySQLdb()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = SECRET_KEY
+
+ALGORITHM = ALGORITHM
 
 DEBUG = True
 
@@ -26,6 +28,7 @@ INSTALLED_APPS = [
     'flights',
     'users',
     'core',
+    'django_extensions'
 ]
 
 MIDDLEWARE = [
@@ -114,3 +117,7 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',    		
 )
+
+KAKAO_REDIRECT_URI  = KAKAO_REDIRECT_URI
+KAKAO_REST_API_KEY  = KAKAO_REST_API_KEY
+KAKAO_CLIENT_SECRET = KAKAO_CLIENT_SECRET
