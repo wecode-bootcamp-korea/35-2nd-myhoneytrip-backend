@@ -19,7 +19,7 @@ class FlightRoute(TimeStampModel):
     code        = models.CharField(max_length = 10)
     departure   = models.ForeignKey('Location', related_name = 'departure_flight_routes', on_delete = models.CASCADE)
     destination = models.ForeignKey('Location', related_name = 'destination_flight_routes', on_delete = models.CASCADE)
-    airpalne    = models.ForeignKey('Airplane', on_delete = models.CASCADE)
+    airplane    = models.ForeignKey('Airplane', on_delete = models.CASCADE)
 
     class Meta: 
         db_table = 'flight_routes'
