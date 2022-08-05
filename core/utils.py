@@ -1,10 +1,11 @@
-from functools   import wraps
-from django.http import JsonResponse
+from functools    import wraps
+from django.http  import JsonResponse
+from enum         import Enum
 
 import jwt
 import requests
-from django.conf import settings
 
+from django.conf  import settings
 from users.models import User
 
 def check_access(func):
@@ -80,3 +81,14 @@ class KakaoAPI:
 def create_token(value):
     access_token = jwt.encode({'id':value}, settings.SECRET_KEY, settings.ALGORITHM)
     return access_token
+
+
+class BookingStatusEnum(Enum): 
+    UPCOMING = 1
+    LAST     = 2
+    CANCELED = 3
+
+
+class TicketStatusEnum(Enum): 
+    CONFIRM  = 1
+    CANCELED = 2
