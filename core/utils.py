@@ -1,8 +1,9 @@
-import jwt
+from enum         import Enum
+from functools    import wraps
+from django.http  import JsonResponse
+from django.conf  import settings
 
-from functools import wraps
-from django.http import JsonResponse
-from django.conf import settings
+import jwt
 
 from users.models import User
 
@@ -25,3 +26,21 @@ def check_access(func):
         return func(self, request)
 
     return wrapper
+
+
+class BookingStatusEnum(Enum): 
+    UPCOMING = 1
+    LAST     = 2
+    CANCELED = 3
+
+
+class TicketStatusEnum(Enum): 
+    CONFIRM  = 1
+    CANCELED = 2
+
+class LocationNameEnum(Enum): 
+    MALDIVES = 1
+    BALI     = 2
+    HAWAII   = 3
+    CANCUN   = 4
+    SEOUL    = 5

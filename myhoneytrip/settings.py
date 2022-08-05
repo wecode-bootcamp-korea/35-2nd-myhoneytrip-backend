@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'flights',
     'users',
     'core',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
