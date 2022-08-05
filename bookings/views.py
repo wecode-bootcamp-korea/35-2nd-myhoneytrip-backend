@@ -1,9 +1,11 @@
 import json
 from uuid            import uuid4
+from operator        import attrgetter
 
 from django.db       import transaction
 from django.http     import JsonResponse
 from django.views    import View
+from django.db.models import Min, Max
 
 from bookings.models import (
     Booking,
@@ -70,6 +72,57 @@ class BookingView(View):
 
 
 class MyBookingListView(View):
+    @check_access
+    def get(self, request):
+        try:
+            user       = request.user
+            status_id  = request.GET.get('status', 'upcoming')
+
+            status_set = {
+                'upcoming' : BookingStatusEnum.UPCOMING.value,
+                'last'     : BookingStatusEnum.LAST.value,
+                'canceled' : BookingStatusEnum.CANCELED.value,
+            }
+
+            status_id = status_id if status_id in status_set.keys() else 'upcoming'
+
+            bookings = Booking.objects.select_related('booking_status')\
+                .annotate(min_departure_time=Min('ticket__flight_detail__departure_time'), max_departure_time=Max('ticket__flight_detail__departure_time'))\
+                .filter(user = user, booking_status_id = status_set.get(status_id))
+                
+            booking_list = []
+
+
+            for booking in bookings:
+                booking_list.append(booking)
+                if booking.min_departure_time != booking.max_departure_time:
+                    booking_return                    = bookings.annotate(min_departure_time=Min('ticket__flight_detail__departure_time'), max_departure_time=Max('ticket__flight_detail__departure_time')).get(id = booking.id)
+                    booking_return.min_departure_time = booking_return.max_departure_time
+                    booking_list.append(booking_return)
+
+            booking_list.sort(key = attrgetter('min_departure_time'))
+
+            flight_detail = FlightDetail.objects.all().select_related('flight_route__airplane__airline', 'flight_route__departure', 'flight_route__destination')
+
+            result = [{
+                'booking_id'       : booking.id,
+                'booking_number'   : booking.booking_number,
+                'booking_status'   : booking.booking_status.name,
+                'departure_name'   : flight_detail.filter(ticket__booking__id=booking.id, departure_time = booking.min_departure_time).first().flight_route.departure.korean_name,
+                'departure_date'   : booking.min_departure_time,
+                'arrival_name'     : flight_detail.filter(ticket__booking__id=booking.id, departure_time = booking.min_departure_time).first().flight_route.destination.korean_name,
+                'arrival_date'     : flight_detail.filter(ticket__booking__id=booking.id, departure_time = booking.min_departure_time).first().arrival_time,
+                'airline'  : {
+                    'id'   : flight_detail.filter(ticket__booking__id=booking.id).first().flight_route.airplane.airline.id,
+                    'name' : flight_detail.filter(ticket__booking__id=booking.id).first().flight_route.airplane.airline.name,
+                    'logo' : flight_detail.filter(ticket__booking__id=booking.id).first().flight_route.airplane.airline.logo_url,
+                }
+            }for booking in booking_list]
+
+            return JsonResponse({'result': result}, status=200)
+        except BookingStatus.DoesNotExist:
+            return JsonResponse({'MESSAGE': 'Booking status matching query does not exist.'}, status = 404)
+    
     @check_access
     def patch(self, request):
         try:
