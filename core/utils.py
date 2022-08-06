@@ -1,5 +1,5 @@
-from functools    import wraps
-from django.http  import JsonResponse
+from functools   import wraps
+from django.http import JsonResponse
 from enum         import Enum
 
 import jwt
@@ -82,7 +82,6 @@ def create_token(value):
     access_token = jwt.encode({'id':value}, settings.SECRET_KEY, settings.ALGORITHM)
     return access_token
 
-
 class BookingStatusEnum(Enum): 
     UPCOMING = 1
     LAST     = 2
@@ -91,4 +90,4 @@ class BookingStatusEnum(Enum):
 
 class TicketStatusEnum(Enum): 
     CONFIRM  = 1
-    CANCELED = 2
+    CANCELED = 2 

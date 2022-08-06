@@ -67,3 +67,29 @@ class BookingView(View):
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
         except FlightDetail.DoesNotExist:
             return JsonResponse({'message' : 'FLIGHT_DETAIL KEY_ERROR'}, status = 404)
+
+
+class MyBookingListView(View):
+    @check_access
+    def patch(self, request):
+        try:
+            user           = request.user
+            data           = json.loads(request.body)
+            booking_id     = data['booking_id']
+            booking_status = BookingStatusEnum.CANCELED.value
+            ticket_status  = TicketStatusEnum.CANCELED.value
+
+            booking = Booking.objects.filter(id = booking_id, user= user)
+            ticket  = Ticket.objects.filter(booking_id = booking_id)
+            
+            if not booking:
+                return JsonResponse({'message': 'Booking matching query does not exist.'}, status = 404)
+            if not ticket:
+                return JsonResponse({'message': 'Ticket matching query does not exist.'}, status = 404)
+            
+            booking.update(booking_status_id = booking_status)        
+            ticket.update(ticket_status_id = ticket_status)
+
+            return JsonResponse({'message' : 'CANCEL SUCCESS'}, status=200)
+        except KeyError:
+            return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
