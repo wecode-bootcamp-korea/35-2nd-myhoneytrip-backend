@@ -90,11 +90,4 @@ class BookingStatusEnum(Enum):
 
 class TicketStatusEnum(Enum): 
     CONFIRM  = 1
-    CANCELED = 2
-
-class LocationNameEnum(Enum): 
-    MALDIVES = 1
-    BALI     = 2
-    HAWAII   = 3
-    CANCUN   = 4
-    SEOUL    = 5
+    CANCELED = 2 

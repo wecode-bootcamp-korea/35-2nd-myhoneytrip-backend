@@ -146,3 +146,48 @@ class MyBookingListView(View):
             return JsonResponse({'message' : 'CANCEL SUCCESS'}, status=200)
         except KeyError:
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
+
+            
+class MyBookingView(View):
+    @check_access
+    def get(self, request, booking_id):
+        try:
+            user    = request.user
+            booking = Booking.objects.select_related('booking_status')\
+                .annotate(min_departure_time=Min('ticket__flight_detail__departure_time'), max_departure_time=Max('ticket__flight_detail__departure_time'))\
+                .get(user = user, id = booking_id)
+
+            flight_detail = FlightDetail.objects.all().select_related('flight_route__airplane__airline', 'flight_route__departure', 'flight_route__destination')
+            tickets       = Ticket.objects.filter(booking_id = booking_id)
+            passengers    = Passenger.objects.filter(booking_id = booking_id)
+            price         = 0
+            
+            for ticket in tickets:
+                price += ticket.flight_detail.price
+
+            result = {
+                'booking_id'     : booking.id,
+                'booking_number' : booking.booking_number,
+                'booking_status' : booking.booking_status.name,
+                'departure_name' : flight_detail.filter(ticket__booking__id=booking.id, departure_time = booking.min_departure_time).first().flight_route.departure.korean_name,
+                'departure_date' : booking.min_departure_time,
+                'arrival_name'   : flight_detail.filter(ticket__booking__id=booking.id, departure_time = booking.min_departure_time).first().flight_route.destination.korean_name,
+                'arrival_date'   : flight_detail.filter(ticket__booking__id=booking.id, departure_time = booking.min_departure_time).first().arrival_time,
+                'airline'        : {
+                    'id'   : flight_detail.filter(ticket__booking__id=booking.id).first().flight_route.airplane.airline.id,
+                    'name' : flight_detail.filter(ticket__booking__id=booking.id).first().flight_route.airplane.airline.name,
+                    'logo' : flight_detail.filter(ticket__booking__id=booking.id).first().flight_route.airplane.airline.logo_url,
+                },
+                'total_price'    : price
+            }
+            
+            passengers = [{
+                'first_name' : passenger.first_name,
+                'last_name'  : passenger.last_name,
+                'gender'     : passenger.gender,
+                'birthday'   : passenger.birthday
+            }for passenger in passengers]
+
+            return JsonResponse({'result':result, 'passengers' : passengers}, status=200)
+        except BookingStatus.DoesNotExist:
+            return JsonResponse({'message' : 'Booking status matching query does not exist.'}, status = 404)
