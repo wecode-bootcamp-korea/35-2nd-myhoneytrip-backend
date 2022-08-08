@@ -27,6 +27,7 @@ class FlightRoute(TimeStampModel):
 
 class Location(TimeStampModel): 
     name         = models.CharField(max_length = 50)
+    korean_name  = models.CharField(max_length = 50)
     airport_code = models.CharField(max_length = 50)
     airport_name = models.CharField(max_length = 100)
 
