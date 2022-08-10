@@ -7,6 +7,17 @@ from bookings.models import Booking, BookingStatus, Ticket
 from core.utils      import check_access, LocationNameEnum
 
 class MyBookingListView(View):
+    """
+    목적: 내가 예약한 예약 목록
+
+    조건
+        - 비행기 출발 순으로 정렬
+        - 같은 예약의 왕복 여정도 날짜 순으로 표시
+    
+    """
+    
+    
+    
     # @check_access
     def get(self, request):
         try:
@@ -21,96 +32,33 @@ class MyBookingListView(View):
             status = BookingStatus.objects.get(id=status_id)
 
             bookings = Booking.objects.select_related('booking_status')\
-                .prefetch_related('passenger_set','ticket_set','ticket_set__flight_detail','ticket_set__flight_detail__flight_route','ticket_set__flight_detail__flight_route__departure','ticket_set__flight_detail__flight_route__destination','ticket_set__flight_detail__flight_route__airplane__airline').filter(user_id = 1, booking_status_id = status.id)
+                .prefetch_related('passenger_set','ticket_set','ticket_set__flight_detail','ticket_set__flight_detail__flight_route','ticket_set__flight_detail__flight_route__departure','ticket_set__flight_detail__flight_route__destination','ticket_set__flight_detail__flight_route__airplane__airline')\
+                .annotate()\
+                .filter(user_id = 1, booking_status_id = status.id)
 
-            # if booking.passenger_set.all()[0].ticket_set.all().count() > 1:
-            #     departure_info = {
-            #         'departure_detail_id'   : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.id,
-            #         'destination_detail_id' : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.id,
-            #         'departure_time'        : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.departure_time,
-            #         'return_time'           : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.arrival_time
-            #     }
-            # else:
-            #     departure_info = {
-            #         'flight_detail_id'      : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.id,
-            #         'departure_time'        : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.departure_time,
-            #         'return_time'           : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.arrival_time
-            #     }
+            """
+            불러온 query_set annotate한 시간 비교해서 왕복이면 객체 하나 더 추가
+            추가가 완료된 list 시간 순으로 정렬(operator 모듈 이용)
+            """
+            
+            result = [{
+                "booking_id" : 
+                "booking_number" :
+                "booking_status" :
+                "departure_name" : FlightDetail.objects.filter(ticket__booking__id=book.id).first().flight_route.departure.korean_name
+                "departure_date" : b
+                "departure_day" :
+                "arrival_name" :
+                "arrival_date" :
+                "arrival_day" :
+                "airline" : {
+                    "airline_id" : 
+                    'name'       : 
+                    'logo'       : 
+                },
+            }
 
-            result = [({
-                'round_trip'                      : {
-                    'departure_info'              : {
-                        'departure_detail_id'     : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.id,
-                        'departure_name'          : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.flight_route.departure.korean_name,
-                        'departure_time'          : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.departure_time,
-                        'departure_ticket_status' : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').ticket_status.name,
-                        'departure_airline_name'  : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.flight_route.airplane.airline.name,
-                        'departure_airline_logo'  : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__departure__name='Seoul').flight_detail.flight_route.airplane.airline.logo_url,
-                        },
-                    'destination_info'              : {
-                        'destination_detail_id'     : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.id,
-                        'destination_name'          : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.flight_route.departure.korean_name,
-                        'return_time'               : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.arrival_time,
-                        'destination_ticket_status' : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').ticket_status.name,
-                        'destination_airline_name'  : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.flight_route.airplane.airline.name,
-                        'destination_airline_logo'  : booking.passenger_set.all()[0].ticket_set.all().get(flight_detail__flight_route__destination__name='Seoul').flight_detail.flight_route.airplane.airline.logo_url,
-                        },
-                    'booking_info'       : {
-                        'booking_id'     : booking.id,
-                        'booking_number' : booking.booking_number,
-                        'booking_status' : booking.booking_status.name,
-                        }
-                }} if booking.passenger_set.all()[0].ticket_set.all().count() > 1 else {
-                'one_way'                         : {
-                    'departure_info'              : {
-                        'departure_detail_id'     : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.id,
-                        'departure_name'          : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.flight_route.departure.korean_name,
-                        'destination_name'        : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.flight_route.destination.korean_name,
-                        'departure_time'          : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.departure_time,
-                        'return_time'             : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.arrival_time,
-                        'departure_ticket_status' : booking.passenger_set.all()[0].ticket_set.all()[0].ticket_status.name,
-                        'airline_name'            : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.flight_route.airplane.airline.name,
-                        'airline_logo'            : booking.passenger_set.all()[0].ticket_set.all()[0].flight_detail.flight_route.airplane.airline.logo_url
-                        },
-                    
-                    'booking_info'        : {
-                        'booking_id'      : booking.id,
-                        'booking_number'  : booking.booking_number,
-                        'booking_status'  : booking.booking_status.name,
-                        }
-                        }})for booking in bookings]
-
-            # result = [{
-            #     'departure_detail'       : {
-            #         'flight_detail_id'   : booking.ticket_set.all()[0].flight_detail.id,
-            #         'flight_detail_time' : booking.ticket_set.all()[0].flight_detail.departure_time,
-            #     },
-            #     'destination_detail'     : {
-            #         'flight_detail_id'   : booking.ticket_set.all()[0].flight_detail.id,
-            #         'flight_detail_time' : booking.ticket_set.all()[0].flight_detail.arrival_time,
-            #     },
-            #     'booking'                : {
-            #         'booking_id'         : booking.id,
-            #         'booking_number'     : booking.booking_number,
-            #         'booking_status'     : booking.booking_status.name
-            #     },
-            #     'airline'                : {
-            #         'airline_id'         : booking.ticket_set.all()[0].flight_detail.flight_route.airplane.airline.id,
-            #         'airline_name'       : booking.ticket_set.all()[0].flight_detail.flight_route.airplane.airline.name,
-            #         'airline_logo'       : booking.ticket_set.all()[0].flight_detail.flight_route.airplane.airline.logo_url,
-            #     },
-            #     'departure'              : {
-            #         'departure_id'       : booking.ticket_set.all()[0].flight_detail.flight_route.departure.id,
-            #         'departure_name'     : booking.ticket_set.all()[0].flight_detail.flight_route.departure.korean_name,
-            #     },
-            #     'destination'            : {
-            #         'destination_id'     : booking.ticket_set.all()[0].flight_detail.flight_route.destination.id,
-            #         'destination_name'   : booking.ticket_set.all()[0].flight_detail.flight_route.destination.korean_name,
-            #     },
-            #     'ticket'                 : {
-            #         'ticket_status'      : booking.ticket_set.all()[0].ticket_status.name
-            #     }
-            # } for booking in bookings]
+            }for book in bookings]
 
             return JsonResponse({'result':result}, status=200)
         except BookingStatus.DoesNotExist:
