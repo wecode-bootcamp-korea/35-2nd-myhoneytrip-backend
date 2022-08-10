@@ -1,7 +1,7 @@
 from django.views     import View
 from django.http      import JsonResponse
 
-from flights.models   import FlightDetail, FlightRoute, Location
+from flights.models   import FlightDetail
 
 class FlightListView(View):
     def get(self, request):
@@ -12,7 +12,7 @@ class FlightListView(View):
             departure_date   = data['departure_date']
             return_date      = request.GET.get('return_date', 0)
             passengers       = data['passenger']
-            airlines         = request.GET.getlist('airline')
+            airlines         = request.GET.getlist('airline', ['HoneyAirline', 'MoonAirline'])
             sort_type        = request.GET.get('sort_by','lowest_fare')
             offset           = int(request.GET.get('offset', 0))
             limit            = int(request.GET.get('limit', 5))
@@ -21,6 +21,7 @@ class FlightListView(View):
                 'lowest_fare' : 'price',
                 'fastest_time': 'departure_time'
             }
+
             departure_options = FlightDetail.objects.select_related('flight_route') \
                                 .filter(departure_time__day=departure_date, \
                                         flight_route__departure__name=departure_name, \
