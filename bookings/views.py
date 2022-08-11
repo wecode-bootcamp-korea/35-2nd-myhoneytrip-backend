@@ -42,7 +42,7 @@ class BookingView(View):
                     booker_email         = data['booker_email'],
                     booker_mobile_number = data['booker_mobile_number'],
                     booking_status       = BookingStatus.objects.get(id = upcoming),
-                    user                 = user.id,
+                    user                 = user,
                     booking_number       = uuid4()
                 )
 
@@ -60,9 +60,9 @@ class BookingView(View):
                     tichet_number = uuid4(),
                     passenger_id  = passenger.id,
                     booking_id    = booking.id,
-                    ticket_status_id = TicketStatus.objects.get(id = ticket_confirm),
+                    ticket_status_id = TicketStatus.objects.get(id = ticket_confirm).id,
                     flight_detail = FlightDetail.objects.get(id = detail))
-                for passenger in passenger_list for detail in flight_details]
+                for passenger in Passenger.objects.filter(booking_id = booking.id) for detail in flight_details]
 
             return JsonResponse({'message' : 'SUCCESS'}, status = 200)
         except KeyError:
