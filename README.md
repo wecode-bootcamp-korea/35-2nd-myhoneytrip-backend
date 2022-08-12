@@ -62,7 +62,9 @@ https://user-images.githubusercontent.com/99232122/184281715-92bcc9a4-fe11-4405-
 
 <img width="792" alt="스크린샷 2022-08-12 오후 12 52 04" src="https://user-images.githubusercontent.com/99232122/184281987-10aae35c-4bb9-4067-a31b-3355491115ef.png">
 
+## 프로젝트 배포 주소
 
+http://2nd-myhoneytrip.s3-website.ap-northeast-2.amazonaws.com/
 
 ## 기술 스택
 |                                                Language                                                |                                                Framwork                                                |                                               Database                                               |                                                     ENV                                                      |                                                   HTTP                                                   |                                                  Deploy                                                 |
