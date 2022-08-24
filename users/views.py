@@ -9,6 +9,7 @@ from .models    import User
 class KakaoSignInView(View):
     def post(self, request):
         try:
+            
             kakao_authorize_code = json.loads(request.body)['authorize_code']
 
             kakao_api = KakaoAPI(
