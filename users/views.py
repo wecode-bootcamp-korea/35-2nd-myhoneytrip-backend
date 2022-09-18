@@ -23,10 +23,22 @@ class KakaoSignInView(View):
             name     = kakao_profile['kakao_account']['profile']['nickname']
             email    = kakao_profile['kakao_account'].get('email')
 
-            if not User.objects.filter(kakao_id=kakao_id).exists():
-                User.objects.create(name=name, email=email, kakao_id=kakao_id)
+            user, created = User.objects.get_or_create(
+                kakao_id = kakao_id,
+                defaults = {
+                    "name" : name,
+                    "email": email
+                }
+            )
 
-            user = User.objects.get(kakao_id=kakao_id)
+            if not created:
+                if not user.name == name:
+                    user.name = name
+
+                if not user.email == email:
+                    user.email = email
+
+                user.save()
 
             return JsonResponse({'message': 'SUCCESS', 'token': create_token(user.id), 'name': user.name}, status=200)
 
